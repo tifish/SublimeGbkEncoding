@@ -149,7 +149,7 @@ class EventListener(sublime_plugin.EventListener):
 
         begin_clock = time.perf_counter()
 
-        encoding = 'GB2312'
+        encoding = 'GBK'
 
         with open(view.file_name(), 'rb') as fp:
             file_content = fp.read()
