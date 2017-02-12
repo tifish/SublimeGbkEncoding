@@ -63,7 +63,7 @@ class EventListener(sublime_plugin.EventListener):
         if not view_info.need_process:
             return
 
-        # print('[SublimeGbkEncoding] on_modified: {0}, {1}, is_scratch: {2}'.format(view.command_history(0), view.command_history(1), view.is_scratch()))
+        # print('[SublimeGbkEncoding] on_modified: {}, {}, is_scratch: {}'.format(view.command_history(0), view.command_history(1), view.is_scratch()))
 
         if view_info.converted:
             command = view.command_history(0)
@@ -176,14 +176,14 @@ class EventListener(sublime_plugin.EventListener):
             try:
                 with codecs.open(view.file_name(), 'rb', encoding) as fp:
                     fp.read()
-                print('[SublimeGbkEncoding] {0} file detected.'.format(encoding.upper()))
+                print('[SublimeGbkEncoding] {} file detected.'.format(encoding.upper()))
             except UnicodeDecodeError:
-                print('[SublimeGbkEncoding] Non-{0} file detected.'.format(encoding.upper()))
+                print('[SublimeGbkEncoding] Non-{} file detected.'.format(encoding.upper()))
                 encoding = None
 
         end_clock = time.perf_counter()
         consume_time = end_clock - begin_clock
-        print('[SublimeGbkEncoding] Detect encoding {0} using {1}s.'.format(encoding, consume_time))
+        print('[SublimeGbkEncoding] Detect encoding {} using {:.4f}s.'.format(encoding, consume_time))
         if consume_time > 1:
             print('[SublimeGbkEncoding] Cancel encoding conversion since it consume too much time.')
             encoding = None
@@ -242,18 +242,18 @@ class ConvertToUtf8Command(sublime_plugin.TextCommand):
         if not (file_name and os.path.exists(file_name)):
             return
 
-        print('[SublimeGbkEncoding] Converting from {0} to UTF-8...'.format(encoding))
+        print('[SublimeGbkEncoding] Converting from {} to UTF-8...'.format(encoding))
         begin_clock = time.perf_counter()
 
         try:
             with codecs.open(file_name, 'rb', encoding) as fp:
                 content = fp.read()
         except LookupError:
-            sublime.error_message('[SublimeGbkEncoding] Encoding {0} is not supported.'.format(encoding))
+            sublime.error_message('[SublimeGbkEncoding] Encoding {} is not supported.'.format(encoding))
             return
         except UnicodeDecodeError:
             sublime.error_message(
-                '[SublimeGbkEncoding] Errors occurred while converting {0} with {1} encoding'.format(
+                '[SublimeGbkEncoding] Errors occurred while converting {} with {} encoding'.format(
                     os.path.basename(file_name), encoding))
             return
 
@@ -273,12 +273,12 @@ class ConvertToUtf8Command(sublime_plugin.TextCommand):
         view.set_encoding('utf-8')
 
         end_clock = time.perf_counter()
-        print('[SublimeGbkEncoding] Converted using {0}s.'.format(end_clock - begin_clock))
+        print('[SublimeGbkEncoding] Converted using {:.4f}s.'.format(end_clock - begin_clock))
 
         view_info = view_infos.get(view)
         view_info.converted = True
 
-        sublime.status_message('{0} -> UTF8'.format(encoding))
+        sublime.status_message('{} -> UTF8'.format(encoding))
 
     def is_enabled(self):
         return self.view.encoding() != 'Hexadecimal'
