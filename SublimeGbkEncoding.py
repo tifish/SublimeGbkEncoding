@@ -63,7 +63,7 @@ class EventListener(sublime_plugin.EventListener):
         if not view_info.need_process:
             return
 
-        # print('[SublimeGbkEncoding] on_modified: %s, %s, is_scratch: %s' % (view.command_history(0), view.command_history(1), view.is_scratch()))
+        # print('[SublimeGbkEncoding] on_modified: {0}, {1}, is_scratch: {2}'.format(view.command_history(0), view.command_history(1), view.is_scratch()))
 
         if view_info.converted:
             command = view.command_history(0)
@@ -176,14 +176,14 @@ class EventListener(sublime_plugin.EventListener):
             try:
                 with codecs.open(view.file_name(), 'rb', encoding) as fp:
                     fp.read()
-                print('[SublimeGbkEncoding] %s file detected.' % encoding.upper())
+                print('[SublimeGbkEncoding] {0} file detected.'.format(encoding.upper()))
             except UnicodeDecodeError:
-                print('[SublimeGbkEncoding] Non-%s file detected.' % encoding.upper())
+                print('[SublimeGbkEncoding] Non-{0} file detected.'.format(encoding.upper()))
                 encoding = None
 
         end_clock = time.perf_counter()
         consume_time = end_clock - begin_clock
-        print('[SublimeGbkEncoding] Detect encoding %s using %fs.' % (encoding, consume_time))
+        print('[SublimeGbkEncoding] Detect encoding {0} using {1}s.'.format(encoding, consume_time))
         if consume_time > 1:
             print('[SublimeGbkEncoding] Cancel encoding conversion since it consume too much time.')
             encoding = None
@@ -242,7 +242,7 @@ class ConvertToUtf8Command(sublime_plugin.TextCommand):
         if not (file_name and os.path.exists(file_name)):
             return
 
-        print('[SublimeGbkEncoding] Converting from %s to UTF-8...' % encoding)
+        print('[SublimeGbkEncoding] Converting from {0} to UTF-8...'.format(encoding))
         begin_clock = time.perf_counter()
 
         try:
@@ -273,7 +273,7 @@ class ConvertToUtf8Command(sublime_plugin.TextCommand):
         view.set_encoding('utf-8')
 
         end_clock = time.perf_counter()
-        print('[SublimeGbkEncoding] Converted using %f s.' % (end_clock - begin_clock))
+        print('[SublimeGbkEncoding] Converted using {0}s.'.format(end_clock - begin_clock))
 
         view_info = view_infos.get(view)
         view_info.converted = True
