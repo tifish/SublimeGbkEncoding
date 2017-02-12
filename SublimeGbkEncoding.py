@@ -158,7 +158,6 @@ class EventListener(sublime_plugin.EventListener):
             try:
                 file_content.decode('ASCII')
                 encoding = None
-                print('is ascii')
             except:
                 pass
 
@@ -166,7 +165,6 @@ class EventListener(sublime_plugin.EventListener):
             if encoding:
                 try:
                     file_content.decode(encoding)
-                    print('is gbk')
                 except:
                     encoding = None
 
