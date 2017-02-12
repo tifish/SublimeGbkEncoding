@@ -149,24 +149,37 @@ class EventListener(sublime_plugin.EventListener):
 
         begin_clock = time.perf_counter()
 
-        encoding = 'GBK'
+        encoding = 'gbk'
 
-        with open(view.file_name(), 'rb') as fp:
-            file_content = fp.read()
+        # 有BOM，不需要处理。
+        if os.path.getsize(view.file_name()) >= 4:
+            with open(view.file_name(), 'rb') as fp:
+                header = fp.read(4)
+                for bom in [codecs.BOM_UTF8, codecs.BOM_UTF16_BE, codecs.BOM_UTF16_LE, codecs.BOM_UTF32_BE,
+                            codecs.BOM_UTF32_LE]:
+                    if header.startswith(bom):
+                        print('[SublimeGbkEncoding] BOM detected.')
+                        encoding = None
 
-            # ASCII文件，不需要处理。
+        # ASCII文件，不需要处理。
+        if encoding:
             try:
-                file_content.decode('ASCII')
+                with codecs.open(view.file_name(), 'rb', 'ascii') as fp:
+                    fp.read()
+                print('[SublimeGbkEncoding] ASCII file detected.')
                 encoding = None
-            except:
+            except UnicodeDecodeError:
                 pass
 
-            # 非GBK编码文件，也不需要处理。
-            if encoding:
-                try:
-                    file_content.decode(encoding)
-                except:
-                    encoding = None
+        # 非GBK编码文件，也不需要处理。
+        if encoding:
+            try:
+                with codecs.open(view.file_name(), 'rb', encoding) as fp:
+                    fp.read()
+                print('[SublimeGbkEncoding] %s file detected.' % encoding.upper())
+            except UnicodeDecodeError:
+                print('[SublimeGbkEncoding] Non-%s file detected.' % encoding.upper())
+                encoding = None
 
         end_clock = time.perf_counter()
         consume_time = end_clock - begin_clock
@@ -233,18 +246,18 @@ class ConvertToUtf8Command(sublime_plugin.TextCommand):
         begin_clock = time.perf_counter()
 
         try:
-            with codecs.open(file_name, 'rb', encoding, errors='strict') as fp:
+            with codecs.open(file_name, 'rb', encoding) as fp:
                 content = fp.read()
         except LookupError:
-            sublime.error_message('Encoding {0} is not supported.'.format(encoding))
+            sublime.error_message('[SublimeGbkEncoding] Encoding {0} is not supported.'.format(encoding))
             return
         except UnicodeDecodeError:
-            view.set_status(
-                'origin_encoding',
-                u'Errors occurred while converting {0} with {1} encoding'.format(
+            sublime.error_message(
+                '[SublimeGbkEncoding] Errors occurred while converting {0} with {1} encoding'.format(
                     os.path.basename(file_name), encoding))
             return
 
+        # 去掉\r，否则会在编辑器中显示成“CR”
         content = content.replace('\r\n', '\n')
         regions = sublime.Region(0, view.size())
         sel = view.sel()
@@ -257,7 +270,7 @@ class ConvertToUtf8Command(sublime_plugin.TextCommand):
             sel.add(sublime.Region(x.a, x.b))
         view.set_viewport_position(vp)
 
-        view.set_encoding('UTF-8')
+        view.set_encoding('utf-8')
 
         end_clock = time.perf_counter()
         print('[SublimeGbkEncoding] Converted using %f s.' % (end_clock - begin_clock))
